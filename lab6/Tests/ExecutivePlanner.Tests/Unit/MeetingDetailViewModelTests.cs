@@ -13,6 +13,8 @@ public class MeetingDetailViewModelTests
     private readonly Mock<IDialogService> _dialog = new();
     private readonly Mock<INavigationService> _navigation = new();
     private readonly Mock<IAuthService> _auth = new();
+    private readonly Mock<ICameraService> _camera = new();
+    private readonly Mock<IGeolocationService> _geolocation = new();
 
     public MeetingDetailViewModelTests()
     {
@@ -21,8 +23,8 @@ public class MeetingDetailViewModelTests
     }
 
     private MeetingDetailViewModel CreateViewModel() =>
-        new(_repository.Object, _dialog.Object, _navigation.Object, _auth.Object,
-            NullLogger<MeetingDetailViewModel>.Instance);
+        new(_repository.Object, _dialog.Object, _navigation.Object, _auth.Object, _camera.Object,
+            _geolocation.Object, NullLogger<MeetingDetailViewModel>.Instance);
 
     private static Meeting SampleMeeting() => new()
     {
@@ -204,5 +206,115 @@ public class MeetingDetailViewModelTests
         _auth.Setup(a => a.IsInRole(UserRole.Manager)).Returns(isManager);
 
         Assert.Equal(isManager, CreateViewModel().CanDelete);
+    }
+
+    [Fact]
+    public async Task TakePhoto_Success_SetsImagePathAndShowsImage()
+    {
+        // Arrange
+        _camera.Setup(c => c.CapturePhotoAsync()).ReturnsAsync(DeviceResult<string>.Ok("/data/photos/abc.jpg"));
+        var viewModel = CreateViewModel();
+
+        // Act
+        await viewModel.TakePhotoCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.Equal("/data/photos/abc.jpg", viewModel.ImagePath);
+        Assert.True(viewModel.HasImage);
+        _dialog.Verify(d => d.ShowErrorAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task TakePhoto_WhenCancelled_ChangesNothingAndShowsNoError()
+    {
+        _camera.Setup(c => c.CapturePhotoAsync()).ReturnsAsync(DeviceResult<string>.With(DeviceStatus.Cancelled));
+        var viewModel = CreateViewModel();
+
+        await viewModel.TakePhotoCommand.ExecuteAsync(null);
+
+        Assert.False(viewModel.HasImage);
+        _dialog.Verify(d => d.ShowErrorAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(DeviceStatus.PermissionDenied, UserMessages.CameraPermissionDenied)]
+    [InlineData(DeviceStatus.NotSupported, UserMessages.CameraUnavailable)]
+    [InlineData(DeviceStatus.Failed, UserMessages.PhotoFailed)]
+    public async Task TakePhoto_OnProblem_ShowsUnderstandableMessageAndKeepsAppRunning(DeviceStatus status, string expectedMessage)
+    {
+        // Arrange
+        _camera.Setup(c => c.CapturePhotoAsync()).ReturnsAsync(DeviceResult<string>.With(status));
+        var viewModel = CreateViewModel();
+
+        // Act
+        var exception = await Record.ExceptionAsync(() => viewModel.TakePhotoCommand.ExecuteAsync(null));
+
+        // Assert
+        Assert.Null(exception);
+        Assert.False(viewModel.HasImage);
+        _dialog.Verify(d => d.ShowErrorAsync(expectedMessage), Times.Once);
+    }
+
+    [Fact]
+    public async Task DetectLocation_Success_SetsCoordinatesAndFormatsText()
+    {
+        // Arrange
+        _geolocation.Setup(g => g.GetCurrentLocationAsync())
+            .ReturnsAsync(DeviceResult<GeoPoint>.Ok(new GeoPoint(50.4501, 30.5234)));
+        var viewModel = CreateViewModel();
+
+        // Act
+        await viewModel.DetectLocationCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.Equal(50.4501, viewModel.Latitude);
+        Assert.Equal(30.5234, viewModel.Longitude);
+        Assert.Equal("Координати: 50.45010, 30.52340", viewModel.CoordinatesText);
+    }
+
+    [Fact]
+    public void CoordinatesText_WithoutLocation_SaysNotDetermined()
+    {
+        Assert.Equal("Координати не визначено", CreateViewModel().CoordinatesText);
+    }
+
+    [Theory]
+    [InlineData(DeviceStatus.PermissionDenied, UserMessages.LocationPermissionDenied)]
+    [InlineData(DeviceStatus.Disabled, UserMessages.LocationDisabled)]
+    [InlineData(DeviceStatus.NotSupported, UserMessages.LocationUnavailable)]
+    [InlineData(DeviceStatus.Failed, UserMessages.LocationFailed)]
+    public async Task DetectLocation_OnProblem_ShowsUnderstandableMessageAndKeepsAppRunning(DeviceStatus status, string expectedMessage)
+    {
+        // Arrange
+        _geolocation.Setup(g => g.GetCurrentLocationAsync()).ReturnsAsync(DeviceResult<GeoPoint>.With(status));
+        var viewModel = CreateViewModel();
+
+        // Act
+        var exception = await Record.ExceptionAsync(() => viewModel.DetectLocationCommand.ExecuteAsync(null));
+
+        // Assert
+        Assert.Null(exception);
+        Assert.Null(viewModel.Latitude);
+        _dialog.Verify(d => d.ShowErrorAsync(expectedMessage), Times.Once);
+    }
+
+    [Fact]
+    public async Task Save_PersistsPhotoPathAndCoordinatesOnMeeting()
+    {
+        // Arrange
+        var viewModel = await CreateLoadedViewModelAsync();
+        _camera.Setup(c => c.CapturePhotoAsync()).ReturnsAsync(DeviceResult<string>.Ok("/data/photos/abc.jpg"));
+        _geolocation.Setup(g => g.GetCurrentLocationAsync())
+            .ReturnsAsync(DeviceResult<GeoPoint>.Ok(new GeoPoint(50.45, 30.52)));
+        _repository.Setup(r => r.UpdateAsync(It.IsAny<Meeting>())).ReturnsAsync(true);
+        await viewModel.TakePhotoCommand.ExecuteAsync(null);
+        await viewModel.DetectLocationCommand.ExecuteAsync(null);
+
+        // Act
+        await viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert
+        _repository.Verify(r => r.UpdateAsync(It.Is<Meeting>(m =>
+            m.ImagePath == "/data/photos/abc.jpg" && m.Latitude == 50.45 && m.Longitude == 30.52)), Times.Once);
     }
 }

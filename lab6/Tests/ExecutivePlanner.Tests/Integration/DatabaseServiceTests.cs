@@ -171,4 +171,37 @@ public class DatabaseServiceTests : IDisposable
         Assert.True(result.Success);
         Assert.Null(result.Value);
     }
+
+    [Fact]
+    public async Task Update_PersistsPhotoPathAndCoordinates()
+    {
+        // Arrange
+        var meeting = NewMeeting("Нарада");
+        await _service.InsertAsync(meeting);
+        meeting.ImagePath = "/data/photos/abc.jpg";
+        meeting.Latitude = 50.4501;
+        meeting.Longitude = 30.5234;
+
+        // Act
+        Assert.True(await _service.UpdateAsync(meeting));
+        var stored = (await _service.GetByIdAsync(meeting.Id)).Value!;
+
+        // Assert
+        Assert.Equal("/data/photos/abc.jpg", stored.ImagePath);
+        Assert.Equal(50.4501, stored.Latitude);
+        Assert.Equal(30.5234, stored.Longitude);
+    }
+
+    [Fact]
+    public async Task NewMeeting_HasNoPhotoAndNoCoordinatesByDefault()
+    {
+        var meeting = NewMeeting("Нарада");
+        await _service.InsertAsync(meeting);
+
+        var stored = (await _service.GetByIdAsync(meeting.Id)).Value!;
+
+        Assert.Equal(string.Empty, stored.ImagePath);
+        Assert.Null(stored.Latitude);
+        Assert.Null(stored.Longitude);
+    }
 }

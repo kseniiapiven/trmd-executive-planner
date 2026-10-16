@@ -31,6 +31,8 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IMeetingRepository>(sp => sp.GetRequiredService<DatabaseService>());
 		builder.Services.AddSingleton<IUserRepository>(sp => sp.GetRequiredService<DatabaseService>());
 		builder.Services.AddSingleton<IAuthService, AuthService>();
+		builder.Services.AddSingleton<ICameraService, CameraService>();
+		builder.Services.AddSingleton<IGeolocationService, GeolocationService>();
 		builder.Services.AddSingleton<IStateService, PreferencesStateService>();
 		builder.Services.AddSingleton<IDialogService, MauiDialogService>();
 		builder.Services.AddSingleton<INavigationService, ShellNavigationService>();

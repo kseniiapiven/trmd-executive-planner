@@ -1,3 +1,4 @@
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ExecutivePlanner.Helpers;
@@ -13,13 +14,18 @@ public partial class MeetingDetailViewModel : ObservableObject, IQueryAttributab
     private readonly IDialogService _dialogService;
     private readonly INavigationService _navigationService;
     private readonly IAuthService _auth;
+    private readonly ICameraService _camera;
+    private readonly IGeolocationService _geolocation;
     private readonly ILogger<MeetingDetailViewModel> _logger;
     private Meeting? _meeting;
 
     public MeetingDetailViewModel(IMeetingRepository repository, IDialogService dialogService,
-        INavigationService navigationService, IAuthService auth, ILogger<MeetingDetailViewModel> logger)
+        INavigationService navigationService, IAuthService auth, ICameraService camera,
+        IGeolocationService geolocation, ILogger<MeetingDetailViewModel> logger)
     {
         _auth = auth;
+        _camera = camera;
+        _geolocation = geolocation;
         _dialogService = dialogService;
         _navigationService = navigationService;
         _logger = logger;
@@ -33,6 +39,24 @@ public partial class MeetingDetailViewModel : ObservableObject, IQueryAttributab
     [ObservableProperty] private string location = string.Empty;
     [ObservableProperty] private string notes = string.Empty;
     [ObservableProperty] private string startDisplay = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasImage))]
+    private string imagePath = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CoordinatesText))]
+    private double? latitude;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CoordinatesText))]
+    private double? longitude;
+
+    public bool HasImage => !string.IsNullOrEmpty(ImagePath);
+
+    public string CoordinatesText => Latitude is { } lat && Longitude is { } lon
+        ? string.Create(CultureInfo.InvariantCulture, $"Координати: {lat:F5}, {lon:F5}")
+        : "Координати не визначено";
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -68,6 +92,9 @@ public partial class MeetingDetailViewModel : ObservableObject, IQueryAttributab
         Location = _meeting.Location;
         Notes = _meeting.Notes;
         StartDisplay = _meeting.StartDisplay;
+        ImagePath = _meeting.ImagePath;
+        Latitude = _meeting.Latitude;
+        Longitude = _meeting.Longitude;
     }
 
     [RelayCommand]
@@ -77,6 +104,9 @@ public partial class MeetingDetailViewModel : ObservableObject, IQueryAttributab
         _meeting.Title = Title.Trim();
         _meeting.Location = Location.Trim();
         _meeting.Notes = Notes;
+        _meeting.ImagePath = ImagePath;
+        _meeting.Latitude = Latitude;
+        _meeting.Longitude = Longitude;
         bool updated;
         try
         {
@@ -95,6 +125,54 @@ public partial class MeetingDetailViewModel : ObservableObject, IQueryAttributab
         }
 
         await _navigationService.GoToAsync("..");
+    }
+
+    [RelayCommand]
+    private async Task TakePhoto()
+    {
+        var result = await _camera.CapturePhotoAsync();
+        switch (result.Status)
+        {
+            case DeviceStatus.Success:
+                ImagePath = result.Value ?? string.Empty;
+                break;
+            case DeviceStatus.Cancelled:
+                break;
+            case DeviceStatus.PermissionDenied:
+                await _dialogService.ShowErrorAsync(UserMessages.CameraPermissionDenied);
+                break;
+            case DeviceStatus.NotSupported:
+                await _dialogService.ShowErrorAsync(UserMessages.CameraUnavailable);
+                break;
+            default:
+                await _dialogService.ShowErrorAsync(UserMessages.PhotoFailed);
+                break;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DetectLocation()
+    {
+        var result = await _geolocation.GetCurrentLocationAsync();
+        switch (result.Status)
+        {
+            case DeviceStatus.Success:
+                Latitude = result.Value.Latitude;
+                Longitude = result.Value.Longitude;
+                break;
+            case DeviceStatus.PermissionDenied:
+                await _dialogService.ShowErrorAsync(UserMessages.LocationPermissionDenied);
+                break;
+            case DeviceStatus.Disabled:
+                await _dialogService.ShowErrorAsync(UserMessages.LocationDisabled);
+                break;
+            case DeviceStatus.NotSupported:
+                await _dialogService.ShowErrorAsync(UserMessages.LocationUnavailable);
+                break;
+            default:
+                await _dialogService.ShowErrorAsync(UserMessages.LocationFailed);
+                break;
+        }
     }
 
     [RelayCommand]

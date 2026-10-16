@@ -18,6 +18,13 @@ public class Meeting
 
     public DateTime StartTime { get; set; }
 
+    // Фото (шлях до файлу у сховищі застосунку) і координати місця зустрічі
+    public string ImagePath { get; set; } = string.Empty;
+
+    public double? Latitude { get; set; }
+
+    public double? Longitude { get; set; }
+
     [Ignore]
     public string StartDisplay => StartTime.ToString("dd.MM.yyyy HH:mm");
 }

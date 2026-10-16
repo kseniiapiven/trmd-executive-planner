@@ -69,6 +69,18 @@ public partial class MeetingsViewModel : ObservableObject, ILifecycleAware
     [RelayCommand(CanExecute = nameof(CanAddMeeting))]
     private async Task AddMeeting()
     {
+#if DEBUG
+        // Тестовий збій для кроку 8: фонова задача кидає виняток, який ніхто не очікує.
+        if (NewTitle == "#test-unobserved")
+        {
+            _ = Task.Run(() => { throw new InvalidOperationException("Змодельований неспостережений виняток"); });
+            await Task.Delay(300);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            NewTitle = string.Empty;
+            return;
+        }
+#endif
         var added = await _repository.InsertAsync(new Meeting
         {
             Title = NewTitle.Trim(),

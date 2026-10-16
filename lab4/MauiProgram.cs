@@ -35,6 +35,22 @@ public static class MauiProgram
 		builder.Services.AddSingleton<MeetingsPage>();
 		builder.Services.AddTransient<MeetingDetailPage>();
 
-		return builder.Build();
+		var app = builder.Build();
+		RegisterGlobalExceptionHandlers(app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("GlobalExceptionHandler"));
+		return app;
+	}
+
+	// Централізований перехоплювач непередбачених винятків: фіксує критичну помилку в лозі.
+	private static void RegisterGlobalExceptionHandlers(ILogger logger)
+	{
+		AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+			logger.LogCritical(e.ExceptionObject as Exception,
+				"Необроблений виняток (завершення застосунку: {IsTerminating})", e.IsTerminating);
+
+		TaskScheduler.UnobservedTaskException += (_, e) =>
+		{
+			logger.LogCritical(e.Exception, "Неспостережений виняток у фоновій задачі");
+			e.SetObserved();
+		};
 	}
 }

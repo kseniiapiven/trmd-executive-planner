@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS "Meetings" (
+"Id" integer primary key autoincrement not null ,
+"Title" varchar(200) not null ,
+"Location" varchar(200) ,
+"Notes" varchar ,
+"StartTime" bigint );
+CREATE TABLE sqlite_sequence(name,seq);
+2|Zustrich_z_partnerom_edited|Zoom|Pidgotuvaty_zvit|639277416000000000

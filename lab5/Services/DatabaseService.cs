@@ -64,7 +64,7 @@ public class DatabaseService : IMeetingRepository
         });
 
     public async Task<bool> InsertAsync(Meeting meeting) =>
-        (await RunAsync("Insert", async db =>
+        await RunBoolAsync("Insert", async db =>
         {
 #if DEBUG
             // Тестовий збій для кроку 8 лабораторної роботи (лише в Debug-збірці).
@@ -73,25 +73,32 @@ public class DatabaseService : IMeetingRepository
             var rows = await db.InsertAsync(meeting);
             _logger.LogInformation("Додано зустріч Id={Id}", meeting.Id);
             return rows > 0;
-        })).Success;
+        });
 
     public async Task<bool> UpdateAsync(Meeting meeting) =>
-        (await RunAsync("Update", async db =>
+        await RunBoolAsync("Update", async db =>
         {
             var rows = await db.UpdateAsync(meeting);
             if (rows == 0) _logger.LogWarning("Оновлення Id={Id}: рядок не знайдено", meeting.Id);
             else _logger.LogInformation("Оновлено зустріч Id={Id}", meeting.Id);
             return rows > 0;
-        })).Success;
+        });
 
     public async Task<bool> DeleteAsync(Meeting meeting) =>
-        (await RunAsync("Delete", async db =>
+        await RunBoolAsync("Delete", async db =>
         {
             var rows = await db.DeleteAsync(meeting);
             if (rows == 0) _logger.LogWarning("Видалення Id={Id}: рядок не знайдено", meeting.Id);
             else _logger.LogInformation("Видалено зустріч Id={Id}", meeting.Id);
             return rows > 0;
-        })).Success;
+        });
+
+    // Для операцій запису: true лише коли виняток не виник І операція справді змінила рядок.
+    private async Task<bool> RunBoolAsync(string operation, Func<SQLiteAsyncConnection, Task<bool>> action)
+    {
+        var result = await RunAsync(operation, action);
+        return result.Success && result.Value;
+    }
 
     // Єдина точка обробки передбачуваних помилок: виняток потрапляє в лог із контекстом операції,
     // а викликач отримує контрольований результат замість поширення винятку.

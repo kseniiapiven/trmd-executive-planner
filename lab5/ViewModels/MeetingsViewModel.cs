@@ -57,7 +57,17 @@ public partial class MeetingsViewModel : ObservableObject, ILifecycleAware
     [RelayCommand]
     private async Task LoadMeetings()
     {
-        var result = await _repository.GetAllAsync();
+        OperationResult<List<Meeting>> result;
+        try
+        {
+            result = await _repository.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Несподіваний виняток при завантаженні списку зустрічей");
+            result = OperationResult<List<Meeting>>.Fail();
+        }
+
         if (!result.Success || result.Value is null)
         {
             _logger.LogWarning("Список зустрічей не оновлено через помилку доступу до даних");
@@ -86,12 +96,23 @@ public partial class MeetingsViewModel : ObservableObject, ILifecycleAware
             return;
         }
 #endif
-        var added = await _repository.InsertAsync(new Meeting
+        var meeting = new Meeting
         {
             Title = NewTitle.Trim(),
             Location = NewLocation.Trim(),
             StartTime = NewDate.Date + NewTime
-        });
+        };
+
+        bool added;
+        try
+        {
+            added = await _repository.InsertAsync(meeting);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Несподіваний виняток при додаванні зустрічі");
+            added = false;
+        }
 
         if (!added)
         {

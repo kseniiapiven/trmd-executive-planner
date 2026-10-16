@@ -40,7 +40,17 @@ public partial class MeetingDetailViewModel : ObservableObject, IQueryAttributab
     [RelayCommand]
     private async Task LoadMeeting(int id)
     {
-        var result = await _repository.GetByIdAsync(id);
+        OperationResult<Meeting?> result;
+        try
+        {
+            result = await _repository.GetByIdAsync(id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Несподіваний виняток при читанні зустрічі Id={Id}", id);
+            result = OperationResult<Meeting?>.Fail();
+        }
+
         if (!result.Success)
         {
             await _dialogService.ShowErrorAsync(UserMessages.LoadFailed);
@@ -62,7 +72,18 @@ public partial class MeetingDetailViewModel : ObservableObject, IQueryAttributab
         _meeting.Title = Title.Trim();
         _meeting.Location = Location.Trim();
         _meeting.Notes = Notes;
-        if (!await _repository.UpdateAsync(_meeting))
+        bool updated;
+        try
+        {
+            updated = await _repository.UpdateAsync(_meeting);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Несподіваний виняток при оновленні зустрічі Id={Id}", _meeting.Id);
+            updated = false;
+        }
+
+        if (!updated)
         {
             await _dialogService.ShowErrorAsync(UserMessages.SaveFailed);
             return;
@@ -75,7 +96,18 @@ public partial class MeetingDetailViewModel : ObservableObject, IQueryAttributab
     private async Task Delete()
     {
         if (_meeting is null) return;
-        if (!await _repository.DeleteAsync(_meeting))
+        bool deleted;
+        try
+        {
+            deleted = await _repository.DeleteAsync(_meeting);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Несподіваний виняток при видаленні зустрічі Id={Id}", _meeting.Id);
+            deleted = false;
+        }
+
+        if (!deleted)
         {
             await _dialogService.ShowErrorAsync(UserMessages.DeleteFailed);
             return;

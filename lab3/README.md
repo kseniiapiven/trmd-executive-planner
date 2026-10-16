@@ -23,3 +23,19 @@ dotnet build -f net8.0-android -t:Run
 - **Стан**: `Services/PreferencesStateService` (Preferences API); чернетка форми зберігається в `App.OnSleep` та `OnDisappearing`, відновлюється при старті.
 - Спільні дані двох екранів — `IMeetingService` (в пам'яті; у ЛР3 буде SQLite).
 - Знімки та спостережений лог: `docs/lab2/`.
+
+## Лабораторна робота №3: SQLite і патерн Repository
+- Пакет `sqlite-net-pcl`; файл бази `executiveplanner.db3` у `FileSystem.AppDataDirectory`.
+- Схема (code-first, атрибути в `Models/Meeting.cs`), таблиця `Meetings`:
+
+| Поле | Тип | Обмеження |
+|---|---|---|
+| Id | INTEGER | PRIMARY KEY, AUTOINCREMENT |
+| Title | VARCHAR(200) | NOT NULL |
+| Location | VARCHAR(200) | |
+| Notes | VARCHAR | |
+| StartTime | BIGINT (ticks) | |
+
+- `Services/IMeetingRepository` - контракт; `Services/DatabaseService` - реалізація (асинхронні GetAllAsync, GetByIdAsync, InsertAsync, UpdateAsync, DeleteAsync), реєструється в DI як Singleton.
+- ViewModel працюють лише з `IMeetingRepository`; список перезавантажується в `OnAppearing`; на екрані деталей додано команду видалення.
+- Знімки екрана і вміст бази: `docs/lab3/`.

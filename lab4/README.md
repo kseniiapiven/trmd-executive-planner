@@ -39,3 +39,12 @@ dotnet build -f net8.0-android -t:Run
 - `Services/IMeetingRepository` - контракт; `Services/DatabaseService` - реалізація (асинхронні GetAllAsync, GetByIdAsync, InsertAsync, UpdateAsync, DeleteAsync), реєструється в DI як Singleton.
 - ViewModel працюють лише з `IMeetingRepository`; список перезавантажується в `OnAppearing`; на екрані деталей додано команду видалення.
 - Знімки екрана і вміст бази: `docs/lab3/`.
+
+## Лабораторна робота №4: логування та обробка помилок
+- **Логування**: `Microsoft.Extensions.Logging`; провайдери Debug (Output) та власний `Helpers/FileLoggerProvider` (файл `executiveplanner.log` у `FileSystem.AppDataDirectory`, формат `час [РІВЕНЬ] категорія: повідомлення`). `ILogger<T>` впроваджується в `DatabaseService` та ViewModel; мінімальний рівень - Debug.
+- **Рівні**: Debug - життєвий цикл і стан; Information - успішні операції (завантаження, додавання, оновлення, видалення); Warning - запис не знайдено; Error (FAIL у файлі) - оброблений виняток у Repository; Critical - необроблений виняток на рівні застосунку.
+- **Repository**: методи `DatabaseService` обгорнуті в `try-catch` (`RunAsync`), повертають `OperationResult<T>` або `bool`; виняток не поширюється, а потрапляє в лог з контекстом.
+- **Користувач**: ViewModel показує через `AlertHelper` лише зрозуміле повідомлення, без технічних деталей.
+- **Глобальний обробник**: `AppDomain.UnhandledException` та `TaskScheduler.UnobservedTaskException` у `MauiProgram.cs` пишуть `LogCritical`.
+- **Тестові збої (лише Debug)**: назва зустрічі `#test-error` викликає збій у Repository, `#test-unobserved` - неспостережений виняток у фоновій задачі.
+- Знімки екрана та приклад логу: `docs/lab4/`.

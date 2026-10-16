@@ -1,0 +1,13 @@
+[Lifecycle] MeetingsViewModel.OnDisappearing
+[State] saved draft: '' / ''
+[Lifecycle] MeetingDetailViewModel.OnAppearing (Narada_z_investorom)
+[Lifecycle] MeetingDetailViewModel.OnDisappearing
+[Lifecycle] MeetingsViewModel.OnAppearing
+[Lifecycle] App.OnSleep
+[State] saved draft: 'Cherneta_zvitu' / ''
+[Lifecycle] App.OnResume
+[Lifecycle] App ctor
+[Lifecycle] App.CreateWindow
+[Lifecycle] MeetingsViewModel.OnAppearing
+[State] restored draft: 'Cherneta_zvitu' / ''
+[Lifecycle] App.OnStart

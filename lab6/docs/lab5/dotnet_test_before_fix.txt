@@ -1,0 +1,55 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  ExecutivePlanner -> /Users/kseniapiven/dev/ExecutivePlanner/bin/Debug/net8.0/ExecutivePlanner.dll
+  ExecutivePlanner.Tests -> /Users/kseniapiven/dev/ExecutivePlanner/Tests/ExecutivePlanner.Tests/bin/Debug/net8.0/ExecutivePlanner.Tests.dll
+Test run for /Users/kseniapiven/dev/ExecutivePlanner/Tests/ExecutivePlanner.Tests/bin/Debug/net8.0/ExecutivePlanner.Tests.dll (.NETCoreApp,Version=v8.0)
+VSTest version 17.11.1 (arm64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.25]     ExecutivePlanner.Tests.Unit.MeetingsViewModelTests.AddMeeting_WhenRepositoryThrows_DoesNotCrashAndShowsError [FAIL]
+[xUnit.net 00:00:00.25]     ExecutivePlanner.Tests.Unit.MeetingsViewModelTests.LoadMeetings_WhenRepositoryThrows_DoesNotCrashAndShowsError [FAIL]
+  Failed ExecutivePlanner.Tests.Unit.MeetingsViewModelTests.AddMeeting_WhenRepositoryThrows_DoesNotCrashAndShowsError [84 ms]
+  Error Message:
+   Assert.Null() Failure: Value is not null
+Expected: null
+Actual:   System.InvalidOperationException: збій сховища
+   at ExecutivePlanner.ViewModels.MeetingsViewModel.AddMeeting() in /Users/kseniapiven/dev/ExecutivePlanner/ViewModels/MeetingsViewModel.cs:line 89
+   at Xunit.Record.ExceptionAsync(Func`1 testCode) in /_/src/xunit.core/Record.cs:line 76
+  Stack Trace:
+     at ExecutivePlanner.Tests.Unit.MeetingsViewModelTests.AddMeeting_WhenRepositoryThrows_DoesNotCrashAndShowsError() in /Users/kseniapiven/dev/ExecutivePlanner/Tests/ExecutivePlanner.Tests/Unit/MeetingsViewModelTests.cs:line 109
+--- End of stack trace from previous location ---
+  Failed ExecutivePlanner.Tests.Unit.MeetingsViewModelTests.LoadMeetings_WhenRepositoryThrows_DoesNotCrashAndShowsError [6 ms]
+  Error Message:
+   Assert.Null() Failure: Value is not null
+Expected: null
+Actual:   System.IO.IOException: диск недоступний
+   at ExecutivePlanner.ViewModels.MeetingsViewModel.LoadMeetings() in /Users/kseniapiven/dev/ExecutivePlanner/ViewModels/MeetingsViewModel.cs:line 60
+   at Xunit.Record.ExceptionAsync(Func`1 testCode) in /_/src/xunit.core/Record.cs:line 76
+  Stack Trace:
+     at ExecutivePlanner.Tests.Unit.MeetingsViewModelTests.LoadMeetings_WhenRepositoryThrows_DoesNotCrashAndShowsError() in /Users/kseniapiven/dev/ExecutivePlanner/Tests/ExecutivePlanner.Tests/Unit/MeetingsViewModelTests.cs:line 124
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:00.28]     ExecutivePlanner.Tests.Unit.MeetingDetailViewModelTests.Save_WhenRepositoryThrows_DoesNotCrashAndShowsError [FAIL]
+[xUnit.net 00:00:00.28]     ExecutivePlanner.Tests.Unit.MeetingDetailViewModelTests.Delete_WhenRepositoryThrows_DoesNotCrashAndShowsError [FAIL]
+  Failed ExecutivePlanner.Tests.Unit.MeetingDetailViewModelTests.Save_WhenRepositoryThrows_DoesNotCrashAndShowsError [2 ms]
+  Error Message:
+   Assert.Null() Failure: Value is not null
+Expected: null
+Actual:   System.InvalidOperationException: збій
+   at ExecutivePlanner.ViewModels.MeetingDetailViewModel.Save() in /Users/kseniapiven/dev/ExecutivePlanner/ViewModels/MeetingDetailViewModel.cs:line 65
+   at Xunit.Record.ExceptionAsync(Func`1 testCode) in /_/src/xunit.core/Record.cs:line 76
+  Stack Trace:
+     at ExecutivePlanner.Tests.Unit.MeetingDetailViewModelTests.Save_WhenRepositoryThrows_DoesNotCrashAndShowsError() in /Users/kseniapiven/dev/ExecutivePlanner/Tests/ExecutivePlanner.Tests/Unit/MeetingDetailViewModelTests.cs:line 122
+--- End of stack trace from previous location ---
+  Failed ExecutivePlanner.Tests.Unit.MeetingDetailViewModelTests.Delete_WhenRepositoryThrows_DoesNotCrashAndShowsError [1 ms]
+  Error Message:
+   Assert.Null() Failure: Value is not null
+Expected: null
+Actual:   System.InvalidOperationException: збій
+   at ExecutivePlanner.ViewModels.MeetingDetailViewModel.Delete() in /Users/kseniapiven/dev/ExecutivePlanner/ViewModels/MeetingDetailViewModel.cs:line 78
+   at Xunit.Record.ExceptionAsync(Func`1 testCode) in /_/src/xunit.core/Record.cs:line 76
+  Stack Trace:
+     at ExecutivePlanner.Tests.Unit.MeetingDetailViewModelTests.Delete_WhenRepositoryThrows_DoesNotCrashAndShowsError() in /Users/kseniapiven/dev/ExecutivePlanner/Tests/ExecutivePlanner.Tests/Unit/MeetingDetailViewModelTests.cs:line 170
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     4, Passed:    20, Skipped:     0, Total:    24, Duration: 43 ms - ExecutivePlanner.Tests.dll (net8.0)

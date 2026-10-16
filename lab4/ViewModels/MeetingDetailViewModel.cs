@@ -35,12 +35,15 @@ public partial class MeetingDetailViewModel : ObservableObject, IQueryAttributab
     [RelayCommand]
     private async Task LoadMeeting(int id)
     {
-        _meeting = await _repository.GetByIdAsync(id);
-        if (_meeting is null)
+        var result = await _repository.GetByIdAsync(id);
+        if (!result.Success)
         {
-            _logger.LogWarning("Зустріч з Id={Id} не знайдено", id);
+            await AlertHelper.ShowErrorAsync(AlertHelper.LoadFailed);
             return;
         }
+
+        _meeting = result.Value;
+        if (_meeting is null) return;
         Title = _meeting.Title;
         Location = _meeting.Location;
         Notes = _meeting.Notes;
@@ -54,8 +57,12 @@ public partial class MeetingDetailViewModel : ObservableObject, IQueryAttributab
         _meeting.Title = Title.Trim();
         _meeting.Location = Location.Trim();
         _meeting.Notes = Notes;
-        await _repository.UpdateAsync(_meeting);
-        _logger.LogInformation("Зустріч Id={Id} оновлено", _meeting.Id);
+        if (!await _repository.UpdateAsync(_meeting))
+        {
+            await AlertHelper.ShowErrorAsync(AlertHelper.SaveFailed);
+            return;
+        }
+
         await Shell.Current.GoToAsync("..");
     }
 
@@ -63,8 +70,12 @@ public partial class MeetingDetailViewModel : ObservableObject, IQueryAttributab
     private async Task Delete()
     {
         if (_meeting is null) return;
-        await _repository.DeleteAsync(_meeting);
-        _logger.LogInformation("Зустріч Id={Id} видалено", _meeting.Id);
+        if (!await _repository.DeleteAsync(_meeting))
+        {
+            await AlertHelper.ShowErrorAsync(AlertHelper.DeleteFailed);
+            return;
+        }
+
         await Shell.Current.GoToAsync("..");
     }
 

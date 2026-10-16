@@ -52,9 +52,16 @@ public partial class MeetingsViewModel : ObservableObject, ILifecycleAware
     [RelayCommand]
     private async Task LoadMeetings()
     {
-        var items = await _repository.GetAllAsync();
+        var result = await _repository.GetAllAsync();
+        if (!result.Success || result.Value is null)
+        {
+            _logger.LogWarning("Список зустрічей не оновлено через помилку доступу до даних");
+            await AlertHelper.ShowErrorAsync(AlertHelper.LoadFailed);
+            return;
+        }
+
         Meetings.Clear();
-        foreach (var item in items) Meetings.Add(item);
+        foreach (var item in result.Value) Meetings.Add(item);
         UpdateStatus();
         _logger.LogInformation("Список зустрічей завантажено: {Count}", Meetings.Count);
     }
@@ -62,16 +69,21 @@ public partial class MeetingsViewModel : ObservableObject, ILifecycleAware
     [RelayCommand(CanExecute = nameof(CanAddMeeting))]
     private async Task AddMeeting()
     {
-        await _repository.InsertAsync(new Meeting
+        var added = await _repository.InsertAsync(new Meeting
         {
             Title = NewTitle.Trim(),
             Location = NewLocation.Trim(),
             StartTime = NewDate.Date + NewTime
         });
 
+        if (!added)
+        {
+            await AlertHelper.ShowErrorAsync(AlertHelper.SaveFailed); // поля не очищуємо, щоб можна було повторити
+            return;
+        }
+
         NewTitle = string.Empty;
         NewLocation = string.Empty;
-        _logger.LogInformation("Додано зустріч");
         await LoadMeetings();
     }
 

@@ -1,3 +1,4 @@
+using ExecutivePlanner.Helpers;
 using ExecutivePlanner.Models;
 using Microsoft.Extensions.Logging;
 using SQLite;
@@ -44,33 +45,65 @@ public class DatabaseService : IMeetingRepository
         return _db;
     }
 
-    public async Task<List<Meeting>> GetAllAsync()
-    {
-        var db = await GetConnectionAsync();
-        return await db.Table<Meeting>().OrderBy(m => m.StartTime).ToListAsync();
-    }
+    public Task<OperationResult<List<Meeting>>> GetAllAsync() =>
+        RunAsync("GetAll", async db =>
+        {
+            var items = await db.Table<Meeting>().OrderBy(m => m.StartTime).ToListAsync();
+            _logger.LogInformation("Прочитано зустрічей: {Count}", items.Count);
+            return items;
+        });
 
-    public async Task<Meeting?> GetByIdAsync(int id)
-    {
-        var db = await GetConnectionAsync();
-        return await db.Table<Meeting>().FirstOrDefaultAsync(m => m.Id == id);
-    }
+    public Task<OperationResult<Meeting?>> GetByIdAsync(int id) =>
+        RunAsync<Meeting?>("GetById", async db =>
+        {
+            var meeting = await db.Table<Meeting>().FirstOrDefaultAsync(m => m.Id == id);
+            if (meeting is null) _logger.LogWarning("Зустріч з Id={Id} відсутня в базі", id);
+            return meeting;
+        });
 
-    public async Task<int> InsertAsync(Meeting meeting)
-    {
-        var db = await GetConnectionAsync();
-        return await db.InsertAsync(meeting);
-    }
+    public async Task<bool> InsertAsync(Meeting meeting) =>
+        (await RunAsync("Insert", async db =>
+        {
+#if DEBUG
+            // Тестовий збій для кроку 8 лабораторної роботи (лише в Debug-збірці).
+            if (meeting.Title == "#test-error") throw new InvalidOperationException("Змодельований збій бази даних");
+#endif
+            var rows = await db.InsertAsync(meeting);
+            _logger.LogInformation("Додано зустріч Id={Id}", meeting.Id);
+            return rows > 0;
+        })).Success;
 
-    public async Task<int> UpdateAsync(Meeting meeting)
-    {
-        var db = await GetConnectionAsync();
-        return await db.UpdateAsync(meeting);
-    }
+    public async Task<bool> UpdateAsync(Meeting meeting) =>
+        (await RunAsync("Update", async db =>
+        {
+            var rows = await db.UpdateAsync(meeting);
+            if (rows == 0) _logger.LogWarning("Оновлення Id={Id}: рядок не знайдено", meeting.Id);
+            else _logger.LogInformation("Оновлено зустріч Id={Id}", meeting.Id);
+            return rows > 0;
+        })).Success;
 
-    public async Task<int> DeleteAsync(Meeting meeting)
+    public async Task<bool> DeleteAsync(Meeting meeting) =>
+        (await RunAsync("Delete", async db =>
+        {
+            var rows = await db.DeleteAsync(meeting);
+            if (rows == 0) _logger.LogWarning("Видалення Id={Id}: рядок не знайдено", meeting.Id);
+            else _logger.LogInformation("Видалено зустріч Id={Id}", meeting.Id);
+            return rows > 0;
+        })).Success;
+
+    // Єдина точка обробки передбачуваних помилок: виняток потрапляє в лог із контекстом операції,
+    // а викликач отримує контрольований результат замість поширення винятку.
+    private async Task<OperationResult<T>> RunAsync<T>(string operation, Func<SQLiteAsyncConnection, Task<T>> action)
     {
-        var db = await GetConnectionAsync();
-        return await db.DeleteAsync(meeting);
+        try
+        {
+            var db = await GetConnectionAsync();
+            return OperationResult<T>.Ok(await action(db));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Помилка операції {Operation} над таблицею Meetings", operation);
+            return OperationResult<T>.Fail();
+        }
     }
 }

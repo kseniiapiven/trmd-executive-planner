@@ -48,3 +48,11 @@ dotnet build -f net8.0-android -t:Run
 - **Глобальний обробник**: `AppDomain.UnhandledException` та `TaskScheduler.UnobservedTaskException` у `MauiProgram.cs` пишуть `LogCritical`.
 - **Тестові збої (лише Debug)**: назва зустрічі `#test-error` викликає збій у Repository, `#test-unobserved` - неспостережений виняток у фоновій задачі.
 - Знімки екрана та приклад логу: `docs/lab4/`.
+
+## Лабораторна робота №5: тестування
+- Тестовий проєкт `Tests/ExecutivePlanner.Tests` (xUnit + Moq), підключений до рішення `ExecutivePlanner.sln`. Для цього застосунок додатково збирається під `net8.0` (лише для тестів; запускається він на Android).
+- **Запуск тестів**: `dotnet test Tests/ExecutivePlanner.Tests`
+- **Статистика**: 34 тести - 24 модульних (`Unit/`: ViewModel з mock-репозиторієм, діалогами й навігацією, патерн AAA, 2 параметризовані тести) і 10 інтеграційних (`Integration/`: реальний SQLite у тимчасовому файлі, який видаляється після тесту).
+- Для тестованості додано інтерфейси `IDialogService` та `INavigationService`; `DatabaseService` приймає шлях до файлу бази.
+- **Дефекти, знайдені тестами**: (1) ViewModel не перехоплювала винятки репозиторію - виправлено; (2) `DatabaseService` повертав «успіх» для оновлення й видалення неіснуючого запису - виправлено.
+- Логи запуску тестів до й після виправлення та їх знімки: `docs/lab5/`.

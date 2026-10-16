@@ -1,0 +1,37 @@
+  Passed Unit.MeetingsViewModelTests.AddMeeting_WhenRepositoryThrows_DoesNotCrashAndShowsError
+  Passed Integration.DatabaseServiceTests.GetAll_ReturnsAsManyMeetingsAsWereInserted(count: 5)
+  Passed Unit.MeetingDetailViewModelTests.Delete_Success_DeletesMeetingAndNavigatesBack
+  Passed Unit.MeetingsViewModelTests.LoadMeetings_WhenRepositoryThrows_DoesNotCrashAndShowsError
+  Passed Unit.MeetingDetailViewModelTests.ApplyQueryAttributes_WithMeetingId_LoadsThatMeeting
+  Passed Integration.DatabaseServiceTests.GetAll_ReturnsAsManyMeetingsAsWereInserted(count: 0)
+  Passed Unit.MeetingsViewModelTests.AddMeetingCommand_CanExecute_DependsOnTitle(title: "", expected: False)
+  Passed Unit.MeetingDetailViewModelTests.Save_WithBlankTitle_DoesNotCallRepository(title: "")
+  Passed Unit.MeetingsViewModelTests.AddMeetingCommand_CanExecute_DependsOnTitle(title: "a", expected: True) [< 1 ms]
+  Passed Integration.DatabaseServiceTests.GetAll_ReturnsAsManyMeetingsAsWereInserted(count: 1)
+  Passed Unit.MeetingsViewModelTests.AddMeetingCommand_CanExecute_DependsOnTitle(title: "\t", expected: False) [< 1 ms]
+  Passed Unit.MeetingsViewModelTests.AddMeetingCommand_CanExecute_DependsOnTitle(title: "   ", expected: False) [< 1 ms]
+  Passed Unit.MeetingsViewModelTests.AddMeetingCommand_CanExecute_DependsOnTitle(title: "  Нарада  ", expected: True) [< 1 ms]
+  Passed Unit.MeetingsViewModelTests.AddMeetingCommand_CanExecute_DependsOnTitle(title: "Нарада", expected: True) [< 1 ms]
+  Passed Unit.MeetingDetailViewModelTests.Save_WithBlankTitle_DoesNotCallRepository(title: "   ") [< 1 ms]
+  Passed Unit.MeetingDetailViewModelTests.Save_Success_UpdatesMeetingAndNavigatesBack
+  Passed Unit.MeetingsViewModelTests.AddMeeting_Success_InsertsMeetingClearsFormAndReloadsList
+  Passed Unit.MeetingDetailViewModelTests.Save_WhenRepositoryThrows_DoesNotCrashAndShowsError
+  Passed Unit.MeetingsViewModelTests.SaveState_WritesDraftToStateService [< 1 ms]
+  Passed Unit.MeetingsViewModelTests.LoadMeetings_WhenRepositoryReturnsItems_FillsCollectionAndStatus [< 1 ms]
+  Passed Unit.MeetingDetailViewModelTests.Save_WhenUpdateFails_ShowsErrorAndStaysOnPage [< 1 ms]
+  Passed Integration.DatabaseServiceTests.Update_NonExistingMeeting_ReturnsFalse
+  Passed Unit.MeetingDetailViewModelTests.Delete_WhenRepositoryThrows_DoesNotCrashAndShowsError [< 1 ms]
+  Passed Unit.MeetingsViewModelTests.LoadMeetings_WhenRepositoryReportsFailure_ShowsErrorAndKeepsCollection
+  Passed Unit.MeetingDetailViewModelTests.LoadMeeting_WhenRepositoryFails_ShowsError [< 1 ms]
+  Passed Unit.MeetingsViewModelTests.AddMeeting_WhenInsertFails_ShowsErrorAndKeepsInputForRetry [< 1 ms]
+  Passed Unit.MeetingDetailViewModelTests.LoadMeeting_FillsFieldsFromRepository [< 1 ms]
+  Passed Unit.MeetingsViewModelTests.OpenMeeting_NavigatesToDetailPageWithMeetingId
+  Passed Integration.DatabaseServiceTests.Crud_Sequence_InsertGetAllUpdateDelete_WorksOnRealDatabase
+  Passed Integration.DatabaseServiceTests.Data_SurvivesCreatingNewServiceOnSameFile
+  Passed Integration.DatabaseServiceTests.Insert_WithNullTitle_ViolatesNotNullConstraintAndReturnsFalse
+  Passed Integration.DatabaseServiceTests.GetAll_ReturnsMeetingsOrderedByStartTime
+  Passed Integration.DatabaseServiceTests.Delete_NonExistingMeeting_ReturnsFalse
+  Passed Integration.DatabaseServiceTests.GetById_WhenMeetingMissing_ReturnsSuccessWithNull
+Test Run Successful.
+Total tests: 34
+     Passed: 34
